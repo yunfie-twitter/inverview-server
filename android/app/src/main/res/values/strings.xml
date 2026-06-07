@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Invidious React Client</string>
+    <string name="title_activity_main">Invidious React Client</string>
+    <string name="package_name">xyz.tsub4sa.invidiousclient</string>
+    <string name="custom_url_scheme">xyz.tsub4sa.invidiousclient</string>
+</resources>

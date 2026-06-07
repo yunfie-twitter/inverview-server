@@ -1,0 +1,577 @@
+:root {
+  --app-radius: 18px;
+  --thumbnail-radius: 14px;
+  --player-radius: 14px;
+  --app-card-opacity: 0.92;
+  --app-shadow-strength: 0.5;
+  --bottom-nav-opacity: 0.72;
+  --ui-density: 1;
+  --content-max-width: 1280px;
+  --app-accent: #2a8cff;
+  --sidebar-width-expanded: 200px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  --header-height: 48px;
+  --scrollbar-size: 10px;
+  --scrollbar-track: color-mix(in srgb, var(--app-accent) 8%, transparent);
+  --scrollbar-thumb: color-mix(in srgb, var(--app-accent) 58%, rgba(128, 128, 128, 0.42));
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--app-accent) 78%, rgba(128, 128, 128, 0.5));
+  --scrollbar-thumb-active: color-mix(in srgb, var(--app-accent) 92%, rgba(255, 255, 255, 0.48));
+  --titlebar-area-x: 0px;
+  --titlebar-area-y: 0px;
+  --titlebar-area-width: 0px;
+  --titlebar-area-height: 0px;
+  --window-top-inset: max(var(--titlebar-area-height), env(titlebar-area-height, 0px));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"],
+[data-allow-user-select="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Prevent iOS Safari from auto-zooming when form fields receive focus. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+#app-scroll-container {
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fui-Dropdown,
+.fui-Combobox,
+.fui-Select {
+  max-width: min(100%, 360px);
+}
+
+.fui-Listbox {
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+.fui-Option {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+:root.tv-mode {
+  --content-max-width: 1920px;
+}
+
+:root.tv-mode #app-scroll-container {
+  padding: 20px 28px 32px;
+}
+
+:root.tv-mode [data-tv-focusable="true"] {
+  transition: transform 120ms ease, box-shadow 120ms ease, outline-color 120ms ease;
+}
+
+:root.tv-mode [data-tv-focusable="true"]:focus-visible,
+:root.tv-mode button:focus-visible {
+  outline: 3px solid var(--app-accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--app-accent) 28%, transparent);
+}
+
+:root.tv-mode [data-tv-focusable="true"]:focus-visible {
+  transform: scale(1.02);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+.app-content-wrap {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Scrollbar styling for app scroll container (PWA/Desktop safe scope). */
+#app-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-gutter: stable;
+}
+
+#app-scroll-container::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+#app-scroll-container::-webkit-scrollbar-track {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--scrollbar-track) 38%,
+      var(--scrollbar-track) 62%,
+      transparent
+    );
+  border-radius: 999px;
+}
+
+#app-scroll-container::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 34%),
+    linear-gradient(180deg, var(--scrollbar-thumb-hover), var(--scrollbar-thumb));
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 28%, transparent),
+    0 0 10px color-mix(in srgb, var(--app-accent) 22%, transparent);
+}
+
+#app-scroll-container::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 36%),
+    linear-gradient(180deg, var(--scrollbar-thumb-active), var(--scrollbar-thumb-hover));
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 42%, transparent),
+    0 0 14px color-mix(in srgb, var(--app-accent) 34%, transparent);
+}
+
+#app-scroll-container::-webkit-scrollbar-thumb:active {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 36%),
+    var(--scrollbar-thumb-active);
+  background-clip: padding-box;
+}
+
+#app-scroll-container::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Avoid scrollbar/touch interference on the watch page player area. */
+#app-scroll-container[data-watch-route="true"] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#app-scroll-container[data-watch-route="true"]::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Hide scrollbars for mobile PWA standalone and Capacitor shell. */
+@media (max-width: 767px) and (display-mode: standalone) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-allow-tap-highlight="true"] {
+    -webkit-tap-highlight-color: rgba(42, 140, 255, 0.25);
+  }
+
+  html,
+  body,
+  #root,
+  #app-scroll-container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar,
+  #app-scroll-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-runtime-shell="capacitor"] * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-runtime-shell="capacitor"] [data-allow-tap-highlight="true"] {
+    -webkit-tap-highlight-color: rgba(42, 140, 255, 0.25);
+  }
+
+  html[data-runtime-shell="capacitor"],
+  html[data-runtime-shell="capacitor"] body,
+  html[data-runtime-shell="capacitor"] #root,
+  html[data-runtime-shell="capacitor"] #app-scroll-container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html[data-runtime-shell="capacitor"]::-webkit-scrollbar,
+  html[data-runtime-shell="capacitor"] body::-webkit-scrollbar,
+  html[data-runtime-shell="capacitor"] #root::-webkit-scrollbar,
+  html[data-runtime-shell="capacitor"] #app-scroll-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+.youtube-theme .shaka-bottom-controls {
+  width: 100%;
+  padding: 0;
+  padding-bottom: 0;
+  z-index: 1;
+}
+
+.youtube-theme .shaka-bottom-controls {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.youtube-theme .shaka-ad-controls {
+  -webkit-box-ordinal-group: 2;
+  -ms-flex-order: 1;
+  order: 1;
+}
+
+.youtube-theme .shaka-controls-button-panel {
+  -webkit-box-ordinal-group: 3;
+  -ms-flex-order: 2;
+  order: 2;
+  height: 40px;
+  padding: 0 10px;
+}
+
+.youtube-theme .shaka-range-container {
+  margin: 4px 10px 4px 10px;
+  top: 0;
+}
+
+.youtube-theme .shaka-small-play-button {
+  -webkit-box-ordinal-group: -2;
+  -ms-flex-order: -3;
+  order: -3;
+}
+
+.youtube-theme .shaka-mute-button {
+  -webkit-box-ordinal-group: -1;
+  -ms-flex-order: -2;
+  order: -2;
+}
+
+.youtube-theme .shaka-controls-button-panel>* {
+  margin: 0;
+  padding: 3px 8px;
+  color: #EEE;
+  height: 40px;
+}
+
+.youtube-theme .shaka-controls-button-panel>*:focus {
+  outline: none;
+  -webkit-box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--app-accent) 80%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--app-accent) 80%, transparent);
+  color: #FFF;
+}
+
+.youtube-theme .shaka-controls-button-panel>*:hover {
+  color: #FFF;
+}
+
+.youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container {
+  position: relative;
+  z-index: 10;
+  left: -1px;
+  -webkit-box-ordinal-group: 0;
+  -ms-flex-order: -1;
+  order: -1;
+  opacity: 0;
+  width: 0px;
+  -webkit-transition: width 0.2s cubic-bezier(0.4, 0, 1, 1);
+  height: 3px;
+  transition: width 0.2s cubic-bezier(0.4, 0, 1, 1);
+  padding: 0;
+}
+
+.youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container:hover,
+.youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container:focus {
+  display: block;
+  width: 50px;
+  opacity: 1;
+  padding: 0 6px;
+}
+
+.youtube-theme .shaka-mute-button:hover+div {
+  opacity: 1;
+  width: 50px;
+  padding: 0 6px;
+}
+
+.youtube-theme .shaka-current-time {
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.youtube-theme .shaka-seek-bar-container {
+  height: 3px;
+  position: relative;
+  top: -1px;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.youtube-theme .shaka-seek-bar-container .shaka-range-element {
+  opacity: 0;
+}
+
+.youtube-theme .shaka-seek-bar-container:hover {
+  height: 5px;
+  top: 0;
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-seek-bar-container:hover .shaka-range-element {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-seek-bar-container input[type=range]::-webkit-slider-thumb {
+  background: none;
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-seek-bar-container input[type=range]::-moz-range-thumb {
+  background: none;
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-seek-bar-container input[type=range]::-ms-thumb {
+  background: none;
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-video-container * {
+  font-family: 'Roboto', sans-serif;
+}
+
+.youtube-theme .shaka-video-container .material-icons-round {
+  font-family: 'Material Icons Sharp';
+}
+
+.youtube-theme .shaka-overflow-menu,
+.youtube-theme .shaka-settings-menu {
+  border-radius: 2px;
+  background: rgba(28, 28, 28, 0.9);
+  text-shadow: 0 0 2px rgb(0 0 0%);
+  -webkit-transition: opacity 0.1s cubic-bezier(0, 0, 0.2, 1);
+  transition: opacity 0.1s cubic-bezier(0, 0, 0.2, 1);
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  right: 10px;
+  bottom: 50px;
+  padding: 8px 0;
+  min-width: 200px;
+}
+
+.youtube-theme .shaka-settings-menu {
+  padding: 0 0 8px 0;
+}
+
+.youtube-theme .shaka-settings-menu button {
+  font-size: 12px;
+}
+
+.youtube-theme .shaka-settings-menu button span {
+  margin-left: 33px;
+  font-size: 13px;
+}
+
+.youtube-theme .shaka-settings-menu button[aria-selected="true"] {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.youtube-theme .shaka-settings-menu button[aria-selected="true"] span {
+  -webkit-box-ordinal-group: 3;
+  -ms-flex-order: 2;
+  order: 2;
+  margin-left: 0;
+}
+
+.youtube-theme .shaka-settings-menu button[aria-selected="true"] i {
+  -webkit-box-ordinal-group: 2;
+  -ms-flex-order: 1;
+  order: 1;
+  font-size: 18px;
+  padding-left: 5px;
+}
+
+.youtube-theme .shaka-overflow-menu button {
+  padding: 0;
+}
+
+.youtube-theme .shaka-overflow-menu button i {
+  display: none;
+}
+
+.youtube-theme .shaka-overflow-menu button .shaka-overflow-button-label {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  cursor: default;
+  outline: none;
+  height: 40px;
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 100%;
+  flex: 0 0 100%;
+}
+
+.youtube-theme .shaka-overflow-menu button .shaka-overflow-button-label span {
+  -ms-flex-negative: initial;
+  flex-shrink: initial;
+  padding-left: 15px;
+  font-size: 13px;
+  font-weight: 500;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.youtube-theme .shaka-overflow-menu span+span {
+  color: #FFF;
+  font-weight: 400 !important;
+  font-size: 12px !important;
+  padding-right: 8px;
+  padding-left: 0 !important;
+}
+
+.youtube-theme .shaka-overflow-menu span+span:after {
+  content: "navigate_next";
+  font-family: 'Material Icons Sharp';
+  font-size: 20px;
+}
+
+.youtube-theme .shaka-overflow-menu .shaka-pip-button span+span {
+  padding-right: 15px !important;
+}
+
+.youtube-theme .shaka-overflow-menu .shaka-pip-button span+span:after {
+  content: "";
+}
+
+.youtube-theme .shaka-back-to-overflow-button {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  color: #eee;
+  height: 40px;
+}
+
+.youtube-theme .shaka-back-to-overflow-button .material-icons-round {
+  font-size: 15px;
+  padding-right: 10px;
+}
+
+.youtube-theme .shaka-back-to-overflow-button span {
+  margin-left: 3px !important;
+}
+
+.youtube-theme .shaka-overflow-menu button:hover,
+.youtube-theme .shaka-settings-menu button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-overflow-menu button:hover label,
+.youtube-theme .shaka-settings-menu button:hover label {
+  cursor: pointer;
+}
+
+.youtube-theme .shaka-overflow-menu button:focus,
+.youtube-theme .shaka-settings-menu button:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  outline: none;
+}
+
+.youtube-theme .shaka-overflow-menu button,
+.youtube-theme .shaka-settings-menu button {
+  color: #EEE;
+}
+
+.youtube-theme .shaka-captions-off {
+  color: #BFBFBF;
+}
+
+.youtube-theme .shaka-overflow-menu-button {
+  font-size: 18px;
+  margin-right: 5px;
+}
+
+.youtube-theme .shaka-fullscreen-button:hover {
+  font-size: 25px;
+  -webkit-transition: font-size 0.1s cubic-bezier(0, 0, 0.2, 1);
+  transition: font-size 0.1s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes thumbShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@property --left-mask-opacity {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}

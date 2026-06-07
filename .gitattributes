@@ -1,0 +1,21 @@
+# Set default behavior for all files
+* text=auto
+
+# Ensure consistent line endings for text files
+*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Export-ignore for nonessential files in archives
+README.md export-ignore
+CHANGELOG.md export-ignore

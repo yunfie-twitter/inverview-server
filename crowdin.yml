@@ -1,0 +1,3 @@
+files:
+  - source: /src/i18n/resources/ja.json
+    translation: /src/i18n/resources/%locale%.json

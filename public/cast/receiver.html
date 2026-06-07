@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InverView Receiver</title>
+    <script
+      src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"
+    ></script>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: #fff;
+        font-family: sans-serif;
+      }
+
+      #video {
+        width: 100%;
+        height: 100%;
+      }
+
+      #overlay {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 18px;
+        z-index: 5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay">InverView Receiver</div>
+    <cast-media-player id="video"></cast-media-player>
+    <script>
+      cast.framework.CastReceiverContext.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+      const context = cast.framework.CastReceiverContext.getInstance();
+      const playerManager = context.getPlayerManager();
+      const overlay = document.getElementById("overlay");
+      let tvSessionId = "";
+      let syncOrigin = location.origin;
+      let apiBaseUrl = "";
+      let lastCommandId = "";
+      let pollTimerId = 0;
+
+      const inferContentType = (url) => {
+        const lower = String(url || "").toLowerCase();
+        if (lower.includes(".mpd")) return "application/dash+xml";
+        if (lower.includes(".m3u8")) return "application/x-mpegURL";
+        return "video/mp4";
+      };
+
+      const updateOverlay = (text) => {
+        if (!overlay) return;
+        overlay.textContent = text;
+      };
+
+      const pickPlayableUrl = (video) => {
+        const dash = video?.dashUrl || "";
+        const hls = video?.hlsUrl || "";
+        if (dash) return dash;
+        if (hls) return hls;
+        const streams = Array.isArray(video?.formatStreams) ? video.formatStreams : [];
+        const mp4 = streams.find((item) => {
+          const container = String(item?.container || "").toLowerCase();
+          const type = String(item?.type || "").toLowerCase();
+          return container.includes("mp4") || type.includes("video/mp4") || type.includes("audio/mp4");
+        });
+        return mp4?.url || streams[0]?.url || "";
+      };
+
+      const fetchVideoDetail = async (videoId) => {
+        if (!apiBaseUrl) return null;
+        const endpoint = `${apiBaseUrl.replace(/\/+$/, "")}/api/v1/videos/${encodeURIComponent(videoId)}`;
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error(`video api failed: ${response.status}`);
+        return response.json();
+      };
+
+      const loadByCommand = async (command) => {
+        if (!command?.videoId) return;
+        const video = await fetchVideoDetail(command.videoId);
+        const sourceUrl = pickPlayableUrl(video);
+        if (!sourceUrl) throw new Error("No playable url");
+
+        const mediaInfo = new chrome.cast.media.MediaInfo(sourceUrl, inferContentType(sourceUrl));
+        const metadata = new chrome.cast.media.GenericMediaMetadata();
+        metadata.title = video?.title || command.videoId;
+        metadata.subtitle = video?.author || "InverView";
+        mediaInfo.metadata = metadata;
+        mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
+        mediaInfo.customData = {
+          videoId: command.videoId,
+          tvSessionId,
+          syncOrigin,
+          apiBaseUrl,
+        };
+
+        const request = new cast.framework.messages.LoadRequestData();
+        request.media = mediaInfo;
+        request.autoplay = true;
+        request.currentTime = 0;
+        await playerManager.load(request);
+      };
+
+      const startTvSyncPolling = () => {
+        if (pollTimerId) {
+          clearInterval(pollTimerId);
+          pollTimerId = 0;
+        }
+        if (!tvSessionId || !syncOrigin) return;
+
+        pollTimerId = setInterval(async () => {
+          try {
+            const url = `${syncOrigin.replace(/\/+$/, "")}/tv-sync/session/${encodeURIComponent(tvSessionId)}/command?after=${encodeURIComponent(lastCommandId)}`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+            const payload = await response.json();
+            if (!payload?.hasCommand || !payload?.command) return;
+            lastCommandId = payload.command.id || lastCommandId;
+            updateOverlay(`Sync: ${payload.command.videoId}`);
+            await loadByCommand(payload.command);
+          } catch (error) {
+            console.error("[RECEIVER] tv-sync polling error", error);
+          }
+        }, 2000);
+      };
+
+      playerManager.setMessageInterceptor(
+        cast.framework.messages.MessageType.LOAD,
+        (requestData) => {
+          if (!requestData || !requestData.media) return requestData;
+          if (!requestData.media.metadata) {
+            requestData.media.metadata = new chrome.cast.media.GenericMediaMetadata();
+          }
+          requestData.media.streamType =
+            requestData.media.streamType || chrome.cast.media.StreamType.BUFFERED;
+          const customData = requestData.media.customData || {};
+          tvSessionId = String(customData.tvSessionId || tvSessionId || "");
+          syncOrigin = String(customData.syncOrigin || location.origin || syncOrigin || "");
+          apiBaseUrl = String(customData.apiBaseUrl || customData.baseUrl || apiBaseUrl || "");
+          startTvSyncPolling();
+          if (overlay) {
+            overlay.textContent = `Loading: ${requestData.media.contentType || "unknown"} / session=${tvSessionId || "-"}`;
+          }
+          return requestData;
+        },
+      );
+
+      playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
+        console.error("[RECEIVER] player error", event);
+        if (overlay) overlay.textContent = "Playback error";
+      });
+
+      context.start({
+        disableIdleTimeout: true,
+      });
+    </script>
+  </body>
+</html>
